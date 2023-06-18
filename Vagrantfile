@@ -32,7 +32,7 @@ Vagrant.configure("2") do |config|
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
+  config.vm.network "private_network", ip: "192.168.33.10"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
@@ -51,6 +51,7 @@ Vagrant.configure("2") do |config|
   # If you use this you may want to enable additional shared subfolders as
   # shown above.
   # config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder "./src", "/vagrant", disabled: false
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -73,12 +74,17 @@ Vagrant.configure("2") do |config|
   # ref => https://rheb.hatenablog.com/entry/podman3_docker_compose
   config.vm.provision "shell", inline: <<-SHELL
     sudo yum update
-    sudo yum install -y podman python3.11
-    # sudo update python3 -m pip update pip
-    # sudo pip install docker-compose
-    # sudo yum install -y podman-plugins
-    # sudo systemctl enable podman.socket
+    sudo yum install -y podman podman-plugins
+    sudo python3 -m pip install --upgrade pip
+    sudo python3 -m pip install docker-compose
+    sudo systemctl enable podman.socket
+    echo 'root:root' | sudo chpasswd
+    sudo echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
     # sudo systemctl start podman.socket
     # root .bashrc export DOCKER_HOST=unix:/run/podman/podman.sock
   SHELL
+
+  # 事前に、passwd rootでパスワード変更が必要？
+  # config.ssh.username="root"
+  # config.ssh.password="root"
 end
