@@ -13,6 +13,7 @@ Vagrant.configure("2") do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
   config.vm.box = "generic/rocky8"
+  config.disksize.size = '50GB'
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -32,6 +33,7 @@ Vagrant.configure("2") do |config|
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
+  # 初回、ホスト側マシン(Windows) 再起動が必要だった
   config.vm.network "private_network", ip: "192.168.33.10"
 
   # Create a public network, which generally matched to bridged network.
@@ -43,7 +45,7 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder "../data", "/vagrant_data"
 
   # Disable the default share of the current code directory. Doing this
   # provides improved isolation between the vagrant box and your host
@@ -51,7 +53,7 @@ Vagrant.configure("2") do |config|
   # If you use this you may want to enable additional shared subfolders as
   # shown above.
   # config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.synced_folder "./src", "/vagrant", disabled: false
+  # config.vm.synced_folder "./src", "/vagrant", disabled: false
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -73,16 +75,41 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   # ref => https://rheb.hatenablog.com/entry/podman3_docker_compose
   config.vm.provision "shell", inline: <<-SHELL
+    # basic command
     sudo yum update
+    sudo yum install -y tmux git
+    sudo git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    sudo ~/.fzf/install
+    sudo git clone --depth 1 https://github.com/rupa/z.git ~/.z
+
+    # GUI
+    sudo yum group install -y "Server with GUI"
+
+    # podman
     sudo yum install -y podman podman-plugins
     sudo python3 -m pip install --upgrade pip
     sudo python3 -m pip install docker-compose
     sudo systemctl enable podman.socket
     echo 'root:root' | sudo chpasswd
     sudo echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
+
+    # nodejs
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | sudo bash
+    # source ~/.bashrc
+    sudo nvm install stable --latest-npm
+    sudo nvm alias default stable
+
+    # python
+    sudo yum install -y python3.11
+    
     # sudo systemctl start podman.socket
     # root .bashrc export DOCKER_HOST=unix:/run/podman/podman.sock
   SHELL
+
+  # https://qiita.com/sola-msr/items/ce6ea764b5236554cb32
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
+  end
 
   # 事前に、passwd rootでパスワード変更が必要？
   # config.ssh.username="root"
