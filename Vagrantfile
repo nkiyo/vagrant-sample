@@ -1,117 +1,54 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
 Vagrant.configure("2") do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
-
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://vagrantcloud.com/search.
   config.vm.box = "generic/rocky8"
-  config.disksize.size = '50GB'
+  # config.disksize.size = '50GB'
 
-  # Disable automatic box update checking. If you disable this, then
-  # boxes will only be checked for updates when the user runs
-  # `vagrant box outdated`. This is not recommended.
-  # config.vm.box_check_update = false
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
-  # NOTE: This will enable public access to the opened port
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine and only allow access
-  # via 127.0.0.1 to disable public access
-  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
-
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
   # 初回、ホスト側マシン(Windows) 再起動が必要だった
   config.vm.network "private_network", ip: "192.168.33.10"
 
-  # Create a public network, which generally matched to bridged network.
-  # Bridged networks make the machine appear as another physical device on
-  # your network.
-  # config.vm.network "public_network"
-
-  # Share an additional folder to the guest VM. The first argument is
-  # the path on the host to the actual folder. The second argument is
-  # the path on the guest to mount the folder. And the optional third
-  # argument is a set of non-required options.
-  config.vm.synced_folder "../data", "/vagrant_data"
-
-  # Disable the default share of the current code directory. Doing this
-  # provides improved isolation between the vagrant box and your host
-  # by making sure your Vagrantfile isn't accessable to the vagrant box.
-  # If you use this you may want to enable additional shared subfolders as
-  # shown above.
-  # config.vm.synced_folder ".", "/vagrant", disabled: true
-  # config.vm.synced_folder "./src", "/vagrant", disabled: false
-
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
   config.vm.provider "virtualbox" do |vb|
-    # Display the VirtualBox GUI when booting the machine
-    vb.gui = true
- 
-    # Customize the amount of memory on the VM:
+    # vb.gui = true
     vb.memory = "4096"
   end
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
 
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  # ref => https://rheb.hatenablog.com/entry/podman3_docker_compose
+  # test file copy
+  config.vm.provision "file", source: "./hoge.txt", destination: "~/hage.txt"
+
+  # Install podman and docker_compose
+  #   => https://rheb.hatenablog.com/entry/podman3_docker_compose
+  # shellコマンドは、rootユーザで実行される。sudo不要とのこと
+  #   => https://qiita.com/pasela/items/906291647c4f97b9a7c7
+  # rootユーザだと、/usr/local/bin/docker-compose で実行する必要あり。PATHが通ってないため
   config.vm.provision "shell", inline: <<-SHELL
     # basic command
-    sudo yum update
-    sudo yum install -y tmux git
-    sudo git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    sudo ~/.fzf/install
-    sudo git clone --depth 1 https://github.com/rupa/z.git ~/.z
+    yum update
+    yum install -y tmux git cifs-utils
+    # git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    # ~/.fzf/install
+    # git clone --depth 1 https://github.com/rupa/z.git ~/.z
 
     # GUI
-    sudo yum group install -y "Server with GUI"
+    # sudo yum group install -y "Server with GUI"
 
     # podman
-    sudo yum install -y podman podman-plugins
-    sudo python3 -m pip install --upgrade pip
-    sudo python3 -m pip install docker-compose
-    sudo systemctl enable podman.socket
+    yum install -y podman podman-plugins
+    python3 -m pip install --upgrade pip
+    python3 -m pip install docker-compose
+    systemctl enable podman.socket
+    # sudo systemctl start podman.socket
     echo 'root:root' | sudo chpasswd
-    sudo echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
+    echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
 
     # nodejs
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | sudo bash
+    # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | sudo bash
     # source ~/.bashrc
-    sudo nvm install stable --latest-npm
-    sudo nvm alias default stable
+    # sudo nvm install stable --latest-npm
+    # sudo nvm alias default stable
 
     # python
-    sudo yum install -y python3.11
+    # sudo yum install -y python3.11
     
-    # sudo systemctl start podman.socket
-    # root .bashrc export DOCKER_HOST=unix:/run/podman/podman.sock
   SHELL
-
-  # https://qiita.com/sola-msr/items/ce6ea764b5236554cb32
-  if Vagrant.has_plugin?("vagrant-vbguest")
-    config.vbguest.auto_update = false
-  end
-
-  # 事前に、passwd rootでパスワード変更が必要？
-  # config.ssh.username="root"
-  # config.ssh.password="root"
 end
