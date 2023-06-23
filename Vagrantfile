@@ -13,8 +13,9 @@ Vagrant.configure("2") do |config|
     vb.memory = "4096"
   end
 
-  # test file copy
-  config.vm.provision "file", source: "./hoge.txt", destination: "~/hage.txt"
+  # copy local files
+  config.vm.provision "file", source: "./dotfiles", destination: "/home/vagrant/dotfiles"
+  config.vm.provision "file", source: "./src", destination: "/home/vagrant/src"
 
   # Install podman and docker_compose
   #   => https://rheb.hatenablog.com/entry/podman3_docker_compose
@@ -22,12 +23,13 @@ Vagrant.configure("2") do |config|
   #   => https://qiita.com/pasela/items/906291647c4f97b9a7c7
   # rootユーザだと、/usr/local/bin/docker-compose で実行する必要あり。PATHが通ってないため
   config.vm.provision "shell", inline: <<-SHELL
+    # create symlink to /home/vagrant
+    ln -sf /home/vagrant/dotfiles/tmux.conf ~/.tmux.conf
+    ln -sf /home/vagrant/src ~/src
+
     # basic command
     yum update
     yum install -y tmux git cifs-utils
-    # git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    # ~/.fzf/install
-    # git clone --depth 1 https://github.com/rupa/z.git ~/.z
 
     # GUI
     # sudo yum group install -y "Server with GUI"
@@ -41,14 +43,14 @@ Vagrant.configure("2") do |config|
     echo 'root:root' | sudo chpasswd
     echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
 
-    # nodejs
-    # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | sudo bash
-    # source ~/.bashrc
-    # sudo nvm install stable --latest-npm
-    # sudo nvm alias default stable
+    ## nodejs
+    ## curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | sudo bash
+    ## source ~/.bashrc
+    ## sudo nvm install stable --latest-npm
+    ## sudo nvm alias default stable
 
-    # python
-    # sudo yum install -y python3.11
+    ## python
+    ## sudo yum install -y python3.11
     
   SHELL
 end
