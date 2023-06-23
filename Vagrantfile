@@ -21,10 +21,16 @@ Vagrant.configure("2") do |config|
   #   => https://rheb.hatenablog.com/entry/podman3_docker_compose
   # shellコマンドは、rootユーザで実行される。sudo不要とのこと
   #   => https://qiita.com/pasela/items/906291647c4f97b9a7c7
-  # rootユーザだと、/usr/local/bin/docker-compose で実行する必要あり。PATHが通ってないため
+  # rootユーザのとき、/usr/local/bin/docker-compose で実行する必要あり。PATHが通ってないため
+  #
+  # cd ~/src
+  # /usr/local/bin/docker-compose up
+  # したあと、
+  # ホストOSからブラウザで http://192.168.33.10:8080 にアクセスして、Wordpressの画面が表示できればOK
   config.vm.provision "shell", inline: <<-SHELL
     # create symlink to /home/vagrant
     ln -sf /home/vagrant/dotfiles/tmux.conf ~/.tmux.conf
+    # FIXME なんか無限に入れ子の構造ができる・・・
     ln -sf /home/vagrant/src ~/src
 
     # basic command
@@ -39,7 +45,7 @@ Vagrant.configure("2") do |config|
     python3 -m pip install --upgrade pip
     python3 -m pip install docker-compose
     systemctl enable podman.socket
-    # sudo systemctl start podman.socket
+    systemctl start podman.socket
     echo 'root:root' | sudo chpasswd
     echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
 
