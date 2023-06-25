@@ -29,9 +29,8 @@ Vagrant.configure("2") do |config|
   # ホストOSからブラウザで http://192.168.33.10:8080 にアクセスして、Wordpressの画面が表示できればOK
   config.vm.provision "shell", inline: <<-SHELL
     # create symlink to /home/vagrant
-    ln -sf /home/vagrant/dotfiles/tmux.conf ~/.tmux.conf
-    # FIXME なんか無限に入れ子の構造ができる・・・
-    ln -sf /home/vagrant/src ~/src
+    ln -sf /home/vagrant/dotfiles/tmux.conf /root/.tmux.conf
+    ln -sf /home/vagrant/src /root/
 
     # basic command
     yum update
