@@ -30,22 +30,24 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     # create symlink to /home/vagrant
     ln -sf /home/vagrant/dotfiles/tmux.conf /root/.tmux.conf
+    ln -sf /home/vagrant/dotfiles/tigrc /root/.tigrc
     ln -sf /home/vagrant/src /root/
+
+    # ssh as root
+    echo 'root:root' | chpasswd
+    sed -i 's/^PasswordAuthentication no$/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    systemctl restart sshd
 
     # basic command
     yum update
-    yum install -y tmux git cifs-utils
+    yum install -y tmux git tig cifs-utils
 
-    # GUI
-    # sudo yum group install -y "Server with GUI"
-
-    # podman
+    # podman + docker-compose
     yum install -y podman podman-plugins
     python3 -m pip install --upgrade pip
     python3 -m pip install docker-compose
     systemctl enable podman.socket
     systemctl start podman.socket
-    echo 'root:root' | sudo chpasswd
     echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
 
     ## nodejs
@@ -58,4 +60,8 @@ Vagrant.configure("2") do |config|
     ## sudo yum install -y python3.11
     
   SHELL
+
+  config.ssh.username = 'root'
+  config.ssh.password = 'root'
+  config.ssh.insert_key = false
 end
