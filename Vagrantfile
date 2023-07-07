@@ -48,7 +48,8 @@ Vagrant.configure("2") do |config|
     python3 -m pip install docker-compose
     systemctl enable podman.socket
     systemctl start podman.socket
-    echo 'export DOCKER_HOST=unix:/run/podman/podman.sock' >> /root/.bashrc
+    # `unix:/run/podman/podman.sock' >> /root/.bashrc`だと、lazydockerがエラーを出した
+    echo 'export DOCKER_HOST=unix:///run/podman/podman.sock' >> /root/.bashrc
 
     ## nodejs
     ## curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | sudo bash
@@ -61,7 +62,7 @@ Vagrant.configure("2") do |config|
     
   SHELL
 
-  config.ssh.username = 'root'
-  config.ssh.password = 'root'
-  config.ssh.insert_key = false
+  # config.ssh.username = 'root'
+  # config.ssh.password = 'root'
+  # config.ssh.insert_key = false
 end
