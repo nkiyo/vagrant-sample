@@ -40,7 +40,10 @@ Vagrant.configure("2") do |config|
 
     # basic command
     yum update
-    yum install -y tmux git tig cifs-utils
+    yum install -y tmux git tig
+    curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | DIR=/usr/local/bin bash
+    yum copr enable atim/lazygit -y
+    yum install -y lazygit
 
     # podman + docker-compose
     yum install -y podman podman-plugins
