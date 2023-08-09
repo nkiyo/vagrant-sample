@@ -51,6 +51,8 @@ Vagrant.configure("2") do |config|
     python3 -m pip install docker-compose
     systemctl enable podman.socket
     systemctl start podman.socket
+    systemctl enable podman-restart
+    systemctl start podman-restart
     # `unix:/run/podman/podman.sock' >> /root/.bashrc`だと、lazydockerがエラーを出した
     echo 'export DOCKER_HOST=unix:///run/podman/podman.sock' >> /root/.bashrc
 
